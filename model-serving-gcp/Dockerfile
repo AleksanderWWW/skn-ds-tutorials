@@ -12,6 +12,7 @@ RUN pip install --no-cache -r requirements.txt
 
 # Skopiuj kod aplikacji
 COPY app.py app.py
+COPY model.joblib model.joblib
 
 # Uruchom aplikacje
 CMD [ "granian", "--interface", "asgi", "--host", "0.0.0.0", "app:app" ]
@@ -22,5 +23,3 @@ CMD [ "granian", "--interface", "asgi", "--host", "0.0.0.0", "app:app" ]
 
 # URUCHAMIANIE KONTENERA Z OBRAZU
 # docker run -p 8000:8000 model-server:v0.1
-
-

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>BMI Risk Predictor</title>
+        <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 40px auto; text-align: center; color: #333; }
+            .container { background: #f9f9f9; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            input { padding: 12px; width: 60%; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+            button { padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+            button:hover { background: #0056b3; }
+            
+            #result-container { margin-top: 25px; padding: 15px; border-radius: 8px; display: none; }
+            #score-text { font-size: 24px; font-weight: bold; }
+
+            table { width: 100%; border-collapse: collapse; margin-top: 30px; background: white; }
+            th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
+            th { background-color: #f2f2f2; }
+            
+            /* Highlighting classes */
+            .low-risk { background-color: #d4edda !important; color: #155724; font-weight: bold; }
+            .mod-risk { background-color: #fff3cd !important; color: #856404; font-weight: bold; }
+            .high-risk { background-color: #f8d7da !important; color: #721c24; font-weight: bold; }
+            
+            .disclaimer { font-size: 12px; color: #777; margin-top: 30px; font-style: italic; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Diabetes Risk Predictor</h1>
+            <p>Enter BMI to estimate 1-year disease progression:</p>
+            <input type="number" id="bmiInput" step="0.1" placeholder="Enter BMI (e.g. 25.5)">
+            <br>
+            <button onclick="getPrediction()">Predict Score</button>
+
+            <div id="result-container">
+                <div id="score-text"></div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Score Range</th>
+                        <th>Risk Level</th>
+                        <th>Context</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="row-low">
+                        <td>Below 100</td>
+                        <td>Low</td>
+                        <td>Progression is stable/well-managed.</td>
+                    </tr>
+                    <tr id="row-mod">
+                        <td>100 - 200</td>
+                        <td>Moderate</td>
+                        <td>Typical progression for this cohort.</td>
+                    </tr>
+                    <tr id="row-high">
+                        <td>Above 200</td>
+                        <td>High</td>
+                        <td>Significant clinical progression likely.</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p class="disclaimer">Note: This is a student club demo using the sklearn diabetes dataset. It is not for medical diagnostic use.</p>
+        </div>
+
+        <script>
+            async function getPrediction() {
+                const bmiValue = document.getElementById('bmiInput').value;
+                if (!bmiValue) return;
+
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ bmi: parseFloat(bmiValue) })
+                });
+                
+                const data = await response.json();
+                const score = data.risk_score;
+
+                // Update text
+                const resDiv = document.getElementById('result-container');
+                const scoreText = document.getElementById('score-text');
+                resDiv.style.display = 'block';
+                scoreText.innerText = 'Score: ' + score.toFixed(1);
+
+                // Reset table highlights
+                document.querySelectorAll('tr').forEach(tr => tr.classList.remove('low-risk', 'mod-risk', 'high-risk'));
+
+                // Apply conditional coloring
+                if (score < 100) {
+                    resDiv.className = 'low-risk';
+                    document.getElementById('row-low').classList.add('low-risk');
+                } else if (score <= 200) {
+                    resDiv.className = 'mod-risk';
+                    document.getElementById('row-mod').classList.add('mod-risk');
+                } else {
+                    resDiv.className = 'high-risk';
+                    document.getElementById('row-high').classList.add('high-risk');
+                }
+            }
+        </script>
+    </body>
+</html>
