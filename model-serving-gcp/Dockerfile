@@ -13,6 +13,7 @@ RUN pip install --no-cache -r requirements.txt
 # Skopiuj kod aplikacji
 COPY app.py app.py
 COPY model.joblib model.joblib
+COPY index.html index.html
 
 # Uruchom aplikacje
 CMD ["fastapi", "run", "app.py"]

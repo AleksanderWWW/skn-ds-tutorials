@@ -29,6 +29,6 @@ async def predict(to_predict: PredictionRequest) -> PredictionResponse:
     return PredictionResponse(risk_score=float(prediction[0]))
 
 
-# @app.get("/")
-# async def read_index() -> FileResponse:
-#     return FileResponse('index.html')
+@app.get("/")
+async def read_index() -> FileResponse:
+    return FileResponse('index.html')
