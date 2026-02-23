@@ -15,8 +15,7 @@ COPY app.py app.py
 COPY model.joblib model.joblib
 
 # Uruchom aplikacje
-CMD [ "granian", "--interface", "asgi", "--host", "0.0.0.0", "app:app" ]
-
+CMD ["fastapi", "run", "app.py"]
 
 # BUDOWANIE OBRAZU
 # docker build -t model-server:v0.1 .
