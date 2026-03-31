@@ -10,7 +10,7 @@ on:
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: eu-central2
+  REGION: europe-central2
   SERVICE_NAME: fastapi-backend
   REPOSITORY: ml-serving
   WORKING_DIR: model-serving-gcp
