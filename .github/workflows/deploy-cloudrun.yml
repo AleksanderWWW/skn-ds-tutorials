@@ -1,0 +1,57 @@
+name: Build and Deploy to Cloud Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag (e.g., v1.0.1)'
+        required: true
+        default: 'latest'
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: eu-central2
+  SERVICE_NAME: fastapi-backend
+  REPOSITORY: ml-serving
+  WORKING_DIR: model-serving-gcp
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Authenticate using the SA JSON Token
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_TOKEN }}'
+
+      # 2. Setup gcloud CLI
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      # 3. Configure Docker to use gcloud as a credential helper
+      - name: 'Docker Auth'
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      # 4. Build and Push the Image
+      - name: 'Build and Push Container'
+        run: |
+          IMAGE_URL="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.event.inputs.image_tag }}"
+          
+          docker build -t $IMAGE_URL ./${{ env.WORKING_DIR }}
+          docker push $IMAGE_URL
+
+      # 5. Deploy to Cloud Run
+      - name: 'Deploy to Cloud Run'
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.event.inputs.image_tag }}
+          # For a demo, this allows public access:
+          flags: '--allow-unauthenticated'
