@@ -14,6 +14,7 @@ model = joblib.load("model.joblib")
 
 class PredictionRequest(BaseModel):
     bmi: float
+    mars_retro: bool
 
 class PredictionResponse(BaseModel):
     risk_score: float
@@ -21,12 +22,16 @@ class PredictionResponse(BaseModel):
 
 @app.post("/predict")
 async def predict(to_predict: PredictionRequest) -> PredictionResponse:
-    """Estimate 1-year diabetes progression based on BMI"""
+    """Estimate 1-year diabetes progression based on BMI and planetary alignment"""
     input_data = pd.DataFrame([[to_predict.bmi]], columns=['bmi'])
-    
+
     prediction = model.predict(input_data)
-    
-    return PredictionResponse(risk_score=float(prediction[0]))
+    score = float(prediction[0])
+
+    if to_predict.mars_retro:
+        score = score * 2.0
+
+    return PredictionResponse(risk_score=score)
 
 
 @app.get("/")
